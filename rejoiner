@@ -85,3 +85,34 @@ while task.wait(6) do
     if CheckSecrets() then break end
     ServerHop()
 end
+
+
+
+spawn(function()
+    while true do
+        wait(15)
+        if not getgenv()._SECRET_FOUND then
+            local HttpService = game:GetService("HttpService")
+            local TeleportService = game:GetService("TeleportService")
+            local PlaceId = game.PlaceId
+            local Servers = {}
+            local req = syn and syn.request or http_request or request
+            local response = req({
+                Url = "https://games.roblox.com/v1/games/" .. PlaceId .. "/servers/Public?sortOrder=Desc&limit=100"
+            })
+            local data = HttpService:JSONDecode(response.Body)
+            for i,v in pairs(data.data) do
+                if type(v) == "table" and v.playing < v.maxPlayers and v.playing > 3 then
+                    if not getgenv().VisitedServers then
+                        getgenv().VisitedServers = {}
+                    end
+                    if not table.find(getgenv().VisitedServers, v.id) then
+                        table.insert(getgenv().VisitedServers, v.id)
+                        TeleportService:TeleportToPlaceInstance(PlaceId, v.id, game.Players.LocalPlayer)
+                        break
+                    end
+                end
+            end
+        end
+    end
+end)
