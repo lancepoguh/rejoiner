@@ -1,0 +1,87 @@
+
+-- // SETTINGS
+getgenv().BrainrotConfig = {
+    ["Garama and madundun"] = true,
+    ["La grande Combination"] = true,
+    ["Graipuss Medusi"] = true,
+    ["Los Tralalelitos"] = true,
+    ["Tortuginni Dragonfruitini"] = true,
+    ["Pot Hotspot"] = true,
+    ["Las Vaquitas Saturnitas"] = true,
+    ["Chicleteira Bicicleteira"] = true,
+    ["Las Tralaleritas"] = true,
+    ["Chimpanzini Spiderini"] = true,
+    ["Nuclero Dinossauro"] = true,
+    ["La Vacca Saturno Saturnita"] = true
+}
+
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+-- Vars
+local Visited = {}
+local PlaceID = game.PlaceId
+local WebhookURL = "https://discord.com/api/webhooks/1402226170920960000/74Kjq3cX7BjGEdFdU23W5CjZmm8XtOq1t-um_O1OUdmC9hUT7OF-bdMltbsa_PB4wO2j"
+local UI = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+UI.Name = "SecretFoundUI"
+local Display = Instance.new("TextLabel", UI)
+Display.Size = UDim2.new(1, 0, 0, 50)
+Display.Position = UDim2.new(0, 0, 0, 0)
+Display.BackgroundTransparency = 1
+Display.TextColor3 = Color3.new(1, 1, 1)
+Display.TextScaled = true
+
+-- Function to send webhook
+local function SendWebhook(secret, jobid, count)
+    local link = "https://chillihub1.github.io/chillihub-joiner/?placeId=" .. PlaceID .. "&gameInstanceId=" .. jobid
+    local data = {
+        ["embeds"] = {{
+            ["title"] = "Secret Is Found ✅",
+            ["description"] = "---- ["..secret.."](<"..link..">) ----\n\n📢 **Game**: [🤖] Steal a Brainrot\n💡 **Model Name**: `" .. secret .. "`\n🎨 **Mutation**: 🕳️\n💸 **Money/s**: N/A\n👥 **Player Count**: " .. count,
+            ["color"] = 65280
+        }}
+    }
+    local jsonData = HttpService:JSONEncode(data)
+    HttpService:PostAsync(WebhookURL, jsonData)
+end
+
+-- Function to check secrets
+local function CheckSecrets()
+    for _, v in pairs(workspace:GetDescendants()) do
+        if v:IsA("Model") and getgenv().BrainrotConfig[v.Name] and not string.find(v.Name:lower(), "fused") then
+            Display.Text = "✅ Found: " .. v.Name
+            SendWebhook(v.Name, game.JobId, #Players:GetPlayers() .. "/8")
+            return true
+        end
+    end
+    return false
+end
+
+-- Function to hop servers
+local function ServerHop()
+    local servers = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..PlaceID.."/servers/Public?sortOrder=Desc&limit=100"))
+    for _, server in pairs(servers.data) do
+        if server.playing < server.maxPlayers and server.playing > 3 and not table.find(Visited, server.id) then
+            table.insert(Visited, server.id)
+                        break
+        end
+    end
+end
+
+-- GUI Button for Rejoin
+local btn = Instance.new("TextButton", UI)
+btn.Size = UDim2.new(0, 120, 0, 40)
+btn.Position = UDim2.new(0.5, -60, 0, 60)
+btn.Text = "⭕ REJOIN"
+btn.BackgroundColor3 = Color3.fromRGB(150, 0, 150)
+btn.TextColor3 = Color3.new(1,1,1)
+btn.MouseButton1Click:Connect(function()
+    end)
+
+-- MAIN LOOP
+while task.wait(6) do
+    if CheckSecrets() then break end
+    ServerHop()
+end
